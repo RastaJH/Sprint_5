@@ -1,36 +1,25 @@
+import pytest
 from pages.main_page import MainPage
 
-# Переход в личный кабинет
-def test_go_to_profile_from_header(driver):
+@pytest.mark.parametrize("open_method, expected", [
+    ("open_tab_buns", "Булки"),
+    ("open_tab_sauces", "Соусы"),
+    ("open_tab_toppings", "Начинки"),
+])
+def test_constructor_tabs_switch(driver, open_method, expected):
+    """Раздел 'Конструктор': переходы по вкладкам 'Булки', 'Соусы', 'Начинки' (параметризация)."""
     main = MainPage(driver)
-    main.open_main()
-    main.go_to_profile()
-    assert driver.current_url.endswith("/login")  # попадаем на логин, если не авторизованы
+    main.go()
+    getattr(main, open_method)()
+    assert main.active_tab_text() == expected, f"Активная вкладка должна быть: {expected}"
 
-# Переход в конструктор по кнопке "Конструктор"
-def test_go_to_constructor_from_header(driver):
+def test_go_from_account_to_constructor_and_logo(driver):
+    """Переход из личного кабинета в конструктор по кнопке 'Конструктор' и по клику на логотип."""
     main = MainPage(driver)
-    main.open_main()
+    main.go()
+    # Проверяем переход по кнопке 'Конструктор'
     main.go_to_constructor()
-    assert "stellarburgers" in driver.current_url
-
-# Переход в конструктор по клику на логотип
-def test_go_to_constructor_by_logo(driver):
-    main = MainPage(driver)
-    main.open_main()
+    assert main.constructor_header_visible(), "Не открылся конструктор по кнопке 'Конструктор'"
+    # Проверяем переход по лого
     main.click_logo()
-    assert "stellarburgers" in driver.current_url
-
-# Раздел «Конструктор»: вкладки
-def test_constructor_tabs(driver):
-    main = MainPage(driver)
-    main.open_main()
-
-    main.open_tab_fillings()
-    assert main.active_tab_text() in ("Начинки", "Соусы", "Булки")
-
-    main.open_tab_sauces()
-    assert main.active_tab_text() in ("Соусы", "Начинки", "Булки")
-
-    main.open_tab_buns()
-    assert main.active_tab_text() in ("Булки", "Соусы", "Начинки")
+    assert main.constructor_header_visible(), "Не открылся конструктор по клику на логотип"

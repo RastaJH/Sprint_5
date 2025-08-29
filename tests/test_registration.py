@@ -1,67 +1,40 @@
 import pytest
-from utils.data_generator import generate_email, generate_password, generate_name
+from pages.main_page import MainPage
+from pages.register_page import RegisterPage
+from pages.login_page import LoginPage
+from pages.profile_page import ProfilePage
+from utils.generators import generate_email, generate_password, generate_name
 
+@pytest.mark.parametrize("pwd_len", [6, 8, 12])
+def test_success_register_with_valid_passwords(driver, pwd_len):
+    """Успешная регистрация с валидными длинами пароля (параметризация)."""
+    main = MainPage(driver)
+    main.go()
+    main.click_login_button()
 
-class TestRegistration:
-    @pytest.mark.parametrize("password_length", [6, 10, 15])
-    def test_successful_registration(self, register_page, password_length):
-        """Успешная регистрация с корректными данными"""
-        register_page.go_to_site()
-        register_page.click_login_link()
-        
-        name = generate_name()
-        email = generate_email()
-        password = generate_password(password_length)
-        
-        register_page.register(name, email, password)
-        
-        # После успешной регистрации должна открыться главная страница
-        assert "stellarburgers" in register_page.get_current_url()
-    
-    def test_registration_with_short_password(self, register_page):
-        """Ошибка при регистрации с коротким паролем"""
-        register_page.go_to_site()
-        register_page.click_login_link()
-        
-        name = generate_name()
-        email = generate_email()
-        password = generate_password(5)  # Слишком короткий пароль
-        
-        register_page.register(name, email, password)
-        
-        # Должно появиться сообщение об ошибке
-        error_message = register_page.get_password_error()
-        assert error_message is not None
-        assert "пароль" in error_message.lower()
-    
-    def test_registration_with_empty_name(self, register_page):
-        """Ошибка при регистрации с пустым именем"""
-        register_page.go_to_site()
-        register_page.click_login_link()
-        
-        email = generate_email()
-        password = generate_password()
-        
-        # Не заполняем имя
-        register_page.set_email(email)
-        register_page.set_password(password)
-        register_page.click_register_button()
-        
-        # Должно появиться сообщение об ошибке
-        error_message = register_page.get_error_message()
-        assert error_message is not None
-    
-    def test_registration_with_invalid_email(self, register_page):
-        """Ошибка при регистрации с некорректным email"""
-        register_page.go_to_site()
-        register_page.click_login_link()
-        
-        name = generate_name()
-        password = generate_password()
-        
-        # Некорректный email
-        register_page.register(name, "invalid-email", password)
-        
-        # Должно появиться сообщение об ошибке
-        error_message = register_page.get_error_message()
-        assert error_message is not None
+    login = LoginPage(driver)
+    login.go_to_register()
+
+    reg = RegisterPage(driver)
+    name = generate_name("Autotest User")
+    email = generate_email(prefix="autotest_user", cohort="013", domain="ya.ru")
+    password = generate_password(pwd_len)
+    reg.register(name, email, password)
+
+    # После регистрации ожидаем попасть на страницу логина/аккаунта и суметь войти
+    # В некоторых версиях нужно повторно нажать "Войти", поэтому проверим вход:
+    login.login(email, password)
+    profile = ProfilePage(driver)
+    profile.go()  # переходим в профиль
+    assert profile.is_opened(), "Профиль не открылся после регистрации и входа"
+
+@pytest.mark.parametrize("pwd_len", [1, 3, 5])
+def test_register_with_short_password_shows_error(driver, pwd_len):
+    """Ошибка при регистрации с коротким паролем (<6)."""
+    reg = RegisterPage(driver)
+    reg.go()
+    name = generate_name("ShortPwd")
+    email = generate_email(prefix="short_pwd", cohort="013", domain="ya.ru")
+    password = "a"*pwd_len
+    reg.register(name, email, password)
+    assert reg.password_error_visible(), "Не отображается ошибка для короткого пароля"

@@ -1,34 +1,38 @@
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
+from .locators import BASE_URL
+
+DEFAULT_TIMEOUT = 10
 
 class BasePage:
-    url = None
-
     def __init__(self, driver):
         self.driver = driver
-        self.wait = WebDriverWait(driver, 10)
+        self.wait = WebDriverWait(driver, DEFAULT_TIMEOUT)
 
-    def go_to_site(self):
-        if self.url:
-            self.driver.get(self.url)
-        else:
-            raise ValueError("URL не задан для страницы")
+    def open(self, path: str = ""):
+        url = BASE_URL.rstrip("/") + "/" + path.lstrip("/")
+        self.driver.get(url)
 
-    def get_current_url(self):
+    def click(self, locator):
+        self.wait.until(EC.element_to_be_clickable(locator)).click()
+
+    def type(self, locator, text: str, clear: bool = True):
+        el = self.wait.until(EC.presence_of_element_located(locator))
+        if clear:
+            el.clear()
+        el.send_keys(text)
+
+    def text_of(self, locator) -> str:
+        el = self.wait.until(EC.visibility_of_element_located(locator))
+        return el.text
+
+    def is_visible(self, locator) -> bool:
+        try:
+            self.wait.until(EC.visibility_of_element_located(locator))
+            return True
+        except TimeoutException:
+            return False
+
+    def current_url(self) -> str:
         return self.driver.current_url
-
-    def find_element(self, locator):
-        return self.wait.until(EC.presence_of_element_located(locator))
-
-    def click_element(self, locator):
-        element = self.wait.until(EC.element_to_be_clickable(locator))
-        element.click()
-
-    def get_text(self, locator):
-        element = self.find_element(locator)
-        return element.text
-
-    def type(self, locator, text):
-        element = self.wait.until(EC.visibility_of_element_located(locator))
-        element.clear()
-        element.send_keys(text)

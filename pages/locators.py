@@ -1,39 +1,40 @@
 from selenium.webdriver.common.by import By
 
-BASE_URL = "https://stellarburgers.nomoreparties.site"
+BASE_URL = "https://stellarburgers.nomoreparties.site/"
 
-# --- Главная страница ---
-MAIN_CONSTRUCTOR_BUTTON = (By.XPATH, "//p[text()='Конструктор']")  # Кнопка "Конструктор" в шапке
-MAIN_LOGO = (By.XPATH, "//div[@class='AppHeader_header__logo__2D0X2']/a")  # Логотип Stellar Burgers
-MAIN_LOGIN_ACCOUNT_BUTTON = (By.XPATH, "//button[text()='Войти в аккаунт']")  # Кнопка "Войти в аккаунт" на главной
-MAIN_PROFILE_BUTTON = (By.XPATH, "//p[text()='Личный Кабинет']")  # Кнопка "Личный кабинет" в шапке
+class MainPageLocators:
+    LOGIN_MAIN_BUTTON = (By.XPATH, "//button[.='Войти в аккаунт']")
+    CONSTRUCTOR_LINK = (By.XPATH, "//p[.='Конструктор']")
+    LOGO_LINK = (By.XPATH, "//div[contains(@class,'AppHeader_header__logo')]//a")
+    ACCOUNT_BUTTON = (By.XPATH, "//p[.='Личный Кабинет' or .='Личный кабинет']")
 
-# --- Вкладки конструктора ---
-TAB_BUNS = (By.XPATH, "//span[text()='Булки']")
-TAB_SAUCES = (By.XPATH, "//span[text()='Соусы']")
-TAB_FILLINGS = (By.XPATH, "//span[text()='Начинки']")
-TAB_ACTIVE = (By.XPATH, "//div[contains(@class,'tab_tab__') and .//span[contains(@class,'current')]]/span")  # Активная вкладка
+    # Tabs
+    TAB_BUNS = (By.XPATH, "//span[contains(@class,'tab_tab__1SPyG') and text()='Булки']")
+    TAB_SAUCES = (By.XPATH, "//span[contains(@class,'tab_tab__1SPyG') and text()='Соусы']")
+    TAB_TOPPINGS = (By.XPATH, "//span[contains(@class,'tab_tab__1SPyG') and text()='Начинки']")
+    ACTIVE_TAB = (By.XPATH, "//div[contains(@class,'tab_tab_type_current')]//span")
 
-# --- Страница логина ---
-LOGIN_EMAIL = (By.NAME, "name")  # Поле Email (на сайте поле имеет name='name')
-LOGIN_PASSWORD = (By.NAME, "Пароль")  # Поле Пароль
-LOGIN_BUTTON = (By.XPATH, "//button[text()='Войти']")  # Кнопка Войти
-LOGIN_REGISTER_LINK = (By.LINK_TEXT, "Зарегистрироваться")  # Ссылка "Зарегистрироваться"
-LOGIN_FORGOT_LINK = (By.LINK_TEXT, "Восстановить пароль")  # Ссылка "Восстановить пароль"
+class AuthLocators:
+    EMAIL_INPUT = (By.NAME, "name")  # на странице логина поле email имеет name='name'
+    PASSWORD_INPUT = (By.NAME, "Пароль")  # иногда локаторы отличаются; продублируем универсальный XPATH ниже
+    EMAIL_INPUT_X = (By.XPATH, "//label[text()='Email']/following-sibling::input")
+    PASSWORD_INPUT_X = (By.XPATH, "//input[@name='Пароль' or @type='password']")
+    LOGIN_BUTTON = (By.XPATH, "//button[.='Войти']")
+    REGISTER_LINK = (By.XPATH, "//a[.='Зарегистрироваться']")
+    FORGOT_PASSWORD_LINK = (By.XPATH, "//a[.='Восстановить пароль']")
 
-# --- Восстановление пароля ---
-FORGOT_TO_LOGIN_LINK = (By.LINK_TEXT, "Войти")  # Ссылка "Войти" на странице восстановления пароля
+class RegisterLocators:
+    NAME_INPUT = (By.XPATH, "//label[text()='Имя']/following-sibling::input")
+    EMAIL_INPUT = (By.XPATH, "//label[text()='Email']/following-sibling::input")
+    PASSWORD_INPUT = (By.XPATH, "//label[text()='Пароль']/following-sibling::input")
+    REGISTER_SUBMIT = (By.XPATH, "//button[.='Зарегистрироваться']")
+    LOGIN_LINK = (By.XPATH, "//a[.='Войти']")
+    PASSWORD_ERROR = (By.XPATH, "//*[contains(text(),'Минимальный пароль') or contains(text(),'Некорректный пароль') or contains(text(),'Минимальный')]")
 
-# --- Страница регистрации ---
-REG_NAME = (By.NAME, "name")  # Поле Имя
-REG_EMAIL = (By.XPATH, "//label[text()='Email']/following-sibling::input")  # Поле Email
-REG_PASSWORD = (By.NAME, "Пароль")  # Поле Пароль
-REG_BUTTON = (By.XPATH, "//button[text()='Зарегистрироваться']")  # Кнопка Зарегистрироваться
-REG_TO_LOGIN_BUTTON = (By.XPATH, "//button[text()='Войти']")  # Ссылка "Войти" из регистрации
-REG_ERROR = (By.XPATH, "//p[contains(@class,'input__error') and text()]")  # Текст ошибки под полем
+class ProfileLocators:
+    PROFILE_HEADER = (By.XPATH, "//a[contains(@class,'Account_link_active')] | //h2[contains(text(),'Профиль')]")
+    LOGOUT_BUTTON = (By.XPATH, "//button[.='Выход']")
 
-# --- Профиль ---
-PROFILE_LOGOUT_BUTTON = (By.XPATH, "//button[text()='Выход']")  # Кнопка Выход
-
-# --- Общие ---
-H1_TITLE = (By.TAG_NAME, "h2")  # Заголовок секции конструктора (на главной)
+# Общие
+class CommonLocators:
+    HEADER_CONSTRUCTOR = (By.XPATH, "//h1[contains(text(),'Соберите бургер')]")
