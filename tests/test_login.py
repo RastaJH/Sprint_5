@@ -6,7 +6,6 @@ from pages.profile_page import ProfilePage
 from utils.generators import generate_email, generate_password, generate_name
 
 def _ensure_user(driver, email, password):
-    """Помощник: создать пользователя через форму регистрации (если требуется)."""
     reg = RegisterPage(driver)
     reg.go()
     name = generate_name("User")
@@ -19,33 +18,18 @@ def existing_user(driver):
     _ensure_user(driver, email, password)
     return email, password
 
-@pytest.mark.parametrize("entry_point", ["main_button", "account_button", "register_form", "forgot_form"])
-def test_login_via_different_entry_points(driver, existing_user, entry_point):
-    """Вход разными способами: с главной, из ЛК, из формы регистрации, из формы восстановления пароля."""
-    email, password = existing_user
-    main = MainPage(driver)
-
-    if entry_point == "main_button":
-        main.go()
-        main.click_login_button()
-    elif entry_point == "account_button":
-        main.go()
-        main.go_to_account()
-    elif entry_point == "register_form":
-        # Открыть регистрацию и нажать 'Войти'
-        reg = RegisterPage(driver)
-        reg.go()
-        reg.click_login_link()
-    elif entry_point == "forgot_form":
+class TestLogin:
+    @pytest.mark.parametrize("entry_point, open_method", [
+        ("main_button", lambda driver: (MainPage(driver).go(), MainPage(driver).click_login_button())),
+        ("account_button", lambda driver: (MainPage(driver).go(), MainPage(driver).go_to_account())),
+        ("register_form", lambda driver: (RegisterPage(driver).go(), RegisterPage(driver).click_login_link())),
+        ("forgot_form", lambda driver: (LoginPage(driver).go(), LoginPage(driver).go_to_forgot(), LoginPage(driver).go())),
+    ])
+    def test_login_via_different_entry_points(self, driver, existing_user, entry_point, open_method):
+        email, password = existing_user
+        open_method(driver)
         login = LoginPage(driver)
-        login.go()
-        login.go_to_forgot()
-        # На странице восстановления обычно есть ссылка 'Войти'
-        login.go()  # возвращаемся на страницу логина
-
-    login = LoginPage(driver)
-    login.login(email, password)
-
-    profile = ProfilePage(driver)
-    profile.go()
-    assert profile.is_opened(), f"Не удалось войти способом: {entry_point}"
+        login.login(email, password)
+        profile = ProfilePage(driver)
+        profile.go()
+        assert profile.is_opened(), f"Не удалось войти способом: {entry_point}"
